@@ -91,8 +91,8 @@ while True:
 
     cv2.imshow("Rock Paper Scissors", frame)
 
-    k = cv2.waitKey(10)
-    if k == ord('q'):
+    k = cv2.waitKey(0)
+    if k%256==27:
         break
 
 cap.release()
