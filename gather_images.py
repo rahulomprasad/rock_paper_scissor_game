@@ -5,7 +5,7 @@ import os
 import sys
 
 
-
+label_name="rock..."
 IMG_SAVE_PATH = 'image_data'
 IMG_CLASS_PATH = os.path.join(IMG_SAVE_PATH, label_name)
 
@@ -19,7 +19,7 @@ while True:
     if not ret:
         continue
 
-    if count == num_samples:
+    if count == 200:
         break
 
     cv2.rectangle(frame, (100, 100), (400, 400), (255, 255, 255), 2)
@@ -29,6 +29,7 @@ while True:
         save_path = os.path.join(IMG_CLASS_PATH, '{}.jpg'.format(count + 1))
         cv2.imwrite(save_path, roi)
         count += 1
+        start= not start
 
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(frame, "Collecting {}".format(count),
