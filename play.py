@@ -6,7 +6,7 @@ from random import choice
 REV_CLASS_MAP = {
     0: "rock",
     1: "paper",
-    2: "scissor",
+    2: "scissors",
     3: "none"
 }
 
@@ -20,7 +20,7 @@ def calculate_winner(move1, move2):
         return "Tie"
 
     if move1 == "rock":
-        if move2 == "scissor":
+        if move2 == "scissors":
             return "User"
         if move2 == "paper":
             return "Computer"
@@ -28,72 +28,106 @@ def calculate_winner(move1, move2):
     if move1 == "paper":
         if move2 == "rock":
             return "User"
-        if move2 == "scissor":
+        if move2 == "scissors":
             return "Computer"
 
-    if move1 == "scissor":
+    if move1 == "scissors":
         if move2 == "paper":
             return "User"
         if move2 == "rock":
             return "Computer"
+    else:
+        return "no"
 
 
 model = load_model("rock-paper-scissors-model.h5")
 
 cap = cv2.VideoCapture(0)
+#cam = cv2.VideoCapture(1)
 
-prev_move = None
 
+start=False
+count=0
 while True:
+
+
     ret, frame = cap.read()
+    
     if not ret:
         continue
 
-    # rectangle for user to play
-    cv2.rectangle(frame, (100, 100), (400, 400), (255, 255, 255), 2)
-    # rectangle for computer to play
-    cv2.rectangle(frame, (500, 100), (800, 400), (255, 255, 255), 2)
+    cv2.rectangle(frame, (100, 100), (800, 500), (255, 255, 255), 2)
 
-    # extract the region of image within the user rectangle
-    roi = frame[100:400, 100:400]
-    img = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, (227, 227))
+    roi = frame[100:500, 100:800]
 
-    # predict the move made
-    pred = model.predict(np.array([img]))
-    move_code = np.argmax(pred[0])
-    user_move_name = mapper(move_code)
-
-    # predict the winner (human vs computer)
-    if prev_move != user_move_name:
-        if user_move_name != "none":
-            computer_move_name = choice(['rock', 'paper', 'scissor'])
-            winner = calculate_winner(user_move_name, computer_move_name)
+    if start:
+        
+        
+        img = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (28, 28))
+        img=img[:,:,0]
+        img=np.asarray(img)
+        img=img.reshape(1,28,28,1)
+        pred = model.predict(img)
+        move_code = np.argmax(pred[0])
+        user_move = mapper(move_code)
+        
+        if user_move != "none":
+            computer_move = choice(['rock', 'paper', 'scissors'])
+            winner = calculate_winner(user_move, computer_move)
+            if winner == "User":
+                count+=1
+            elif winner == "Computer":
+                count=count-1
         else:
-            computer_move_name = "none"
+            computer_move = "none"
             winner = "Waiting..."
-    prev_move = user_move_name
+            
 
-    # display the information
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(frame, "Your Move: " + user_move_name,
-                (50, 50), font, 1.2, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(frame, "Computer's Move: " + computer_move_name,
-                (750, 50), font, 1.2, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(frame, "Winner: " + winner,
-                (400, 600), font, 2, (0, 0, 255), 4, cv2.LINE_AA)
+        print(user_move, computer_move, winner)
+        
+        start=not start
 
-    if computer_move_name != "none":
+
+        # display the information
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(frame, "Your Move: " + user_move,
+                    (50, 50), font, 1.2, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.putText(frame, "Computer's Move: " + computer_move,
+                    (10, 240), font, 0.8, (255, 0, 0), 2, cv2.LINE_AA)
+        cv2.putText(frame, "Winner: " + winner,
+                    (120, 160), font, 2, (0, 0, 255), 4, cv2.LINE_AA)
+
+        
+        #print(1111)
+        
+        
+
+    #if computer_move_name != "none":
         icon = cv2.imread(
-            "images/{}.png".format(computer_move_name))
-        icon = cv2.resize(icon, (227, 227))
-        frame[100:400, 500:800] = icon
+            "computer/{}.jpg".format(computer_move))
+        icon = cv2.resize(icon, (200, 200))
+        #icon = icon[:,:,0]
+        frame[280:480, 0:200] = icon
 
-    cv2.imshow("Rock Paper Scissors", frame)
+     
+
+    cv2.imshow("USER", frame)
 
     k = cv2.waitKey(0)
     if k%256==27:
         break
+    if k%256==32:
+        start=not start
+    
+    
+    
+if count>0:   
+    print("Congratulations you have won")
+elif count<0:
+    print("you lost the game")
+else:
+    "DRAW"
 
 cap.release()
 cv2.destroyAllWindows()
