@@ -20,12 +20,16 @@ def mapper(val):
 model = load_model("rock-paper-scissors-model.h5")
 
 # prepare the image
-img = cv2.imread('paper.png')
+img = cv2.imread('test/38.jpg')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-img = cv2.resize(img, (227, 227))
+img = cv2.resize(img, (28, 28))
+img = img[:,:,0]
+img=np.asarray(img)
+img=img.reshape(1,28,28,1)
 
 # predict the move made
-pred = model.predict(np.array([img]))
+#pred = model.predict(np.array([img]))
+pred = model.predict(img)
 move_code = np.argmax(pred[0])
 move_name = mapper(move_code)
 
